@@ -23,7 +23,8 @@ func ConnectDatabase(user, host, password, port, db string) *gorm.DB {
 	)
 	dsn := user + ":" + password + "@tcp(" + host + ":" + port + ")/" + db + "?parseTime=true"
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: newLogger,
+		Logger:                                   newLogger,
+		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
 		panic("failed to connect database")
@@ -38,6 +39,10 @@ func ConnectDatabase(user, host, password, port, db string) *gorm.DB {
 		&domain.Product{},
 		&domain.ProductPrice{},
 		&domain.Transaction{},
+		&domain.Supplier{},
+		&domain.Category{},
+		&domain.StockIn{},
+		&domain.StockOut{},
 	)
 	if err != nil {
 		panic("failed to auto migrate schema")
