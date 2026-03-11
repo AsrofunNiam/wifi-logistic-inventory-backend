@@ -86,8 +86,10 @@ func (service *UserServiceImpl) Create(authDetails *auth.AccessDetails, request 
 		FullName:    request.FullName,
 		LegalName:   request.LegalName,
 		Email:       request.Email,
+		NumberPhone: request.NumberPhone,
 		Password:    string(hashedPassword),
 		Role:        request.Role,
+		Status:      request.Status,
 		CreatedByID: authDetails.ID,
 	}
 
@@ -108,7 +110,9 @@ func (service *UserServiceImpl) Update(authDetails *auth.AccessDetails, id uint,
 		FullName:    request.FullName,
 		LegalName:   request.LegalName,
 		Email:       request.Email,
+		NumberPhone: request.NumberPhone,
 		Role:        request.Role,
+		Status:      request.Status,
 		UpdatedByID: authDetails.ID,
 	}
 

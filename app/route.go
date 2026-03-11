@@ -8,11 +8,9 @@ import (
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/route"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-// ErrorHandler
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
@@ -25,7 +23,7 @@ func ErrorHandler() gin.HandlerFunc {
 	}
 }
 
-func NewRouter(db *gorm.DB, redisClient *redis.Client, validate *validator.Validate) *gin.Engine {
+func NewRouter(db *gorm.DB, validate *validator.Validate) *gin.Engine {
 
 	router := gin.New()
 
@@ -38,14 +36,13 @@ func NewRouter(db *gorm.DB, redisClient *redis.Client, validate *validator.Valid
 
 	// route path
 	route.UserRoute(router, db, validate)
-	route.ProductRoute(router, db, redisClient, validate)
-	route.SupplierRoute(router, db, redisClient, validate)
-	route.CategoryRoute(router, db, redisClient, validate)
-	route.StockInRoute(router, db, redisClient, validate)
-	route.StockOutRoute(router, db, redisClient, validate)
-	route.DashboardRoute(router, db, redisClient)
+	route.ProductRoute(router, db, validate)
+	route.SupplierRoute(router, db, validate)
+	route.CategoryRoute(router, db, validate)
+	route.StockInRoute(router, db, validate)
+	route.StockOutRoute(router, db, validate)
+	route.DashboardRoute(router, db)
 	route.ReportRoute(router, db)
-	// route.TransactionRoute(router, db, validate)
 
 	return router
 }

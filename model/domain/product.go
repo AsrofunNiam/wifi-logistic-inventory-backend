@@ -8,60 +8,55 @@ import (
 type Products []Product
 type Product struct {
 	gorm.Model
-	CreatedByID uint `gorm:"default:null"`
-	UpdatedByID uint `gorm:"default:null"`
-	DeletedByID uint `gorm:"default:null"`
+	CreatedByID uint  `gorm:"default:null"`
+	UpdatedByID uint  `gorm:"default:null"`
+	DeletedByID *uint `gorm:"default:null"`
 
 	// Required Fields
 	Code        string  `gorm:"type:varchar(50);uniqueIndex;not null"`
 	Name        string  `gorm:"type:varchar(255);not null"`
 	CategoryID  uint    `gorm:"default:null"`
 	SupplierID  uint    `gorm:"default:null"`
-	Type        string  `gorm:"type:text"`
-	CompanyCode uint    `gorm:"not null"`
 	Description string  `gorm:"type:text"`
-	Images      string  `gorm:"type:text"`
-	Available   bool    `gorm:"default:true"`
 	Stock       int     `gorm:"default:0"`
 	MinStock    int     `gorm:"default:0"`
 	Unit        string  `gorm:"type:varchar(50);default:'Unit'"`
 	Price       float64 `gorm:"type:decimal(20,2);default:0"`
 
 	// Relations
-	Company      Company      `gorm:"foreignKey:CompanyCode;references:ID"`
-	ProductPrice ProductPrice `gorm:"foreignKey:ProductID;references:ID"`
-	Category     Category     `gorm:"foreignKey:CategoryID"`
-	Supplier     Supplier     `gorm:"foreignKey:SupplierID"`
+	Category Category `gorm:"foreignKey:CategoryID"`
+	Supplier Supplier `gorm:"foreignKey:SupplierID"`
 }
 
 func (product *Product) ToProductResponse() web.ProductResponse {
+	categoryName := ""
+	if product.Category.Name != "" {
+		categoryName = product.Category.Name
+	}
+	supplierName := ""
+	if product.Supplier.Name != "" {
+		supplierName = product.Supplier.Name
+	}
 	return web.ProductResponse{
-		// Required Fields
-		ID:          product.ID,
-		Code:        product.Code,
-		Name:        product.Name,
-		CategoryID:  product.CategoryID,
-		SupplierID:  product.SupplierID,
-		Type:        product.Type,
-		CompanyCode: product.CompanyCode,
-		Description: product.Description,
-		Images:      product.Images,
-		Available:   product.Available,
-		Stock:       product.Stock,
-		MinStock:    product.MinStock,
-		Unit:        product.Unit,
-		Price:       product.Price,
-
-		// Relations
-		Company:      product.Company.ToCompanyResponse(),
-		ProductPrice: product.ProductPrice.ToProductPriceResponse(),
+		ID:           product.ID,
+		Code:         product.Code,
+		Name:         product.Name,
+		CategoryID:   product.CategoryID,
+		CategoryName: categoryName,
+		SupplierID:   product.SupplierID,
+		SupplierName: supplierName,
+		Description:  product.Description,
+		Stock:        product.Stock,
+		MinStock:     product.MinStock,
+		Unit:         product.Unit,
+		Price:        product.Price,
 	}
 }
 
-func (users Products) ToProductResponses() []web.ProductResponse {
+func (products Products) ToProductResponses() []web.ProductResponse {
 	productResponses := []web.ProductResponse{}
-	for _, user := range users {
-		productResponses = append(productResponses, user.ToProductResponse())
+	for _, product := range products {
+		productResponses = append(productResponses, product.ToProductResponse())
 	}
 	return productResponses
 }

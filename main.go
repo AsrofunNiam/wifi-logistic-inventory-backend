@@ -18,10 +18,9 @@ func main() {
 
 	port := configuration.Port
 	db := app.ConnectDatabase(configuration.User, configuration.Host, configuration.Password, configuration.PortDB, configuration.Db)
-	redisClient := app.ConnectClientCRedis(configuration.RedisHost, configuration.RedisPort, configuration.RedisPassword)
 
 	validate := validator.New()
-	router := app.NewRouter(db, redisClient, validate)
+	router := app.NewRouter(db, validate)
 	server := http.Server{
 		Addr:    ":" + port,
 		Handler: router,

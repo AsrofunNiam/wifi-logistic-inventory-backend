@@ -8,12 +8,7 @@ import (
 type ProductController interface {
 	FindAll(context *gin.Context, auth *auth.AccessDetails)
 	FindByID(context *gin.Context, auth *auth.AccessDetails)
-	FindImage(context *gin.Context, auth *auth.AccessDetails)
 	Create(context *gin.Context, auth *auth.AccessDetails)
-	Delete(context *gin.Context, auth *auth.AccessDetails)
 	Update(context *gin.Context, auth *auth.AccessDetails)
-
-	// Group transaction
-	FindAllProductTransaction(context *gin.Context, auth *auth.AccessDetails)
-	CreateProductTransaction(context *gin.Context, auth *auth.AccessDetails)
+	Delete(context *gin.Context, auth *auth.AccessDetails)
 }

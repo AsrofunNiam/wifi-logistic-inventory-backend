@@ -1,8 +1,6 @@
 package service
 
 import (
-	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/auth"
@@ -10,38 +8,22 @@ import (
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/model/domain"
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/model/web"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type DashboardServiceImpl struct {
-	DB          *gorm.DB
-	RedisClient *redis.Client
+	DB *gorm.DB
 }
 
 func NewDashboardService(
 	db *gorm.DB,
-	redisClient *redis.Client,
 ) DashboardService {
 	return &DashboardServiceImpl{
-		DB:          db,
-		RedisClient: redisClient,
+		DB: db,
 	}
 }
 
 func (service *DashboardServiceImpl) GetStats(auth *auth.AccessDetails, c *gin.Context) web.DashboardStatsResponse {
-	ctx := context.Background()
-	key := "dashboard:stats"
-
-	// Check cache in Redis
-	data, err := service.RedisClient.Get(ctx, key).Result()
-	if err == nil {
-		var cachedStats web.DashboardStatsResponse
-		if err := json.Unmarshal([]byte(data), &cachedStats); err == nil {
-			return cachedStats
-		}
-	}
-
 	// Calculate stats from database
 	var totalProducts int64
 	var totalSuppliers int64
@@ -52,6 +34,7 @@ func (service *DashboardServiceImpl) GetStats(auth *auth.AccessDetails, c *gin.C
 	var lowStockCount int64
 
 	// Count total products
+	var err error
 	err = service.DB.Model(&domain.Product{}).Count(&totalProducts).Error
 	helper.PanicIfError(err)
 
@@ -166,12 +149,6 @@ func (service *DashboardServiceImpl) GetStats(auth *auth.AccessDetails, c *gin.C
 		LowStockCount:    lowStockCount,
 		LowStockProducts: lowStockItems,
 		RecentActivities: activities,
-	}
-
-	// Save to Redis
-	jsonData, err := json.Marshal(stats)
-	if err == nil {
-		_ = service.RedisClient.Set(ctx, key, jsonData, 5*time.Minute).Err()
 	}
 
 	return stats

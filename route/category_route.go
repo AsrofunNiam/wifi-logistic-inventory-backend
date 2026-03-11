@@ -7,15 +7,13 @@ import (
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/service"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-func CategoryRoute(router *gin.Engine, db *gorm.DB, redisClient *redis.Client, validate *validator.Validate) {
+func CategoryRoute(router *gin.Engine, db *gorm.DB, validate *validator.Validate) {
 	categoryService := service.NewCategoryService(
 		repository.NewCategoryRepository(),
 		db,
-		redisClient,
 		validate,
 	)
 	categoryController := controller.NewCategoryController(categoryService)

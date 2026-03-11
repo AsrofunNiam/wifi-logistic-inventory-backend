@@ -1,8 +1,6 @@
 package domain
 
 import (
-	"time"
-
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/model/web"
 	"gorm.io/gorm"
 )
@@ -16,29 +14,24 @@ type User struct {
 	DeletedByID *uint `gorm:""`
 
 	// Fields
-	FullName      string    `gorm:"size:200;uniqueIndex:idx_users"`
-	LegalName     string    `gorm:"size:200"`
-	PlaceOfBirth  string    `gorm:"size:200"`
-	DateOfBirth   time.Time `gorm:"type:date;not null"`
-	Salary        float64   `gorm:"type:decimal(20,2);not null"`
-	IdentityImage string    `gorm:"size:200"`
-	FaceImage     string    `gorm:"size:200"`
-	Password      string    `gorm:"size:100"`
-	Role          string    `gorm:"size:100"`
-	NumberPhone   string    `gorm:"size:15;uniqueIndex:idx_users"`
-	Email         string    `gorm:"size:100;uniqueIndex:idx_users"`
+	FullName    string `gorm:"size:200;uniqueIndex:idx_users"`
+	LegalName   string `gorm:"size:200"`
+	Password    string `gorm:"size:100"`
+	Role        string `gorm:"size:100"`
+	NumberPhone string `gorm:"size:15;uniqueIndex:idx_users"`
+	Email       string `gorm:"size:100;uniqueIndex:idx_users"`
+	Status      string `gorm:"size:20;default:'active'"`
 }
 
 func (user *User) ToUserResponse() web.UserResponse {
 	return web.UserResponse{
-		// Required Fields
-		ID: user.ID,
-		// Fields
+		ID:          user.ID,
 		FullName:    user.FullName,
 		LegalName:   user.LegalName,
 		NumberPhone: user.NumberPhone,
 		Email:       user.Email,
 		Role:        user.Role,
+		Status:      user.Status,
 	}
 }
 

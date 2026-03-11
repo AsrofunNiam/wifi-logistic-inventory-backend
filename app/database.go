@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/model/domain"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -33,14 +32,9 @@ func ConnectDatabase(user, host, password, port, db string) *gorm.DB {
 	//  function auto migrate, create and generate schema table
 	err = database.AutoMigrate(
 		&domain.User{},
-		&domain.Balance{},
-		&domain.Currency{},
-		&domain.Company{},
-		&domain.Product{},
-		&domain.ProductPrice{},
-		&domain.Transaction{},
-		&domain.Supplier{},
 		&domain.Category{},
+		&domain.Supplier{},
+		&domain.Product{},
 		&domain.StockIn{},
 		&domain.StockOut{},
 	)
@@ -50,17 +44,4 @@ func ConnectDatabase(user, host, password, port, db string) *gorm.DB {
 	}
 
 	return database
-}
-
-func ConnectClientCRedis(host, port, password string) *redis.Client {
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     host + ":" + port,
-		Password: password,
-		DB:       1,
-		Protocol: 3,
-	})
-
-	return rdb
-
 }

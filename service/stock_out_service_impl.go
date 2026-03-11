@@ -1,9 +1,6 @@
 package service
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/auth"
@@ -14,7 +11,6 @@ import (
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +18,6 @@ type StockOutServiceImpl struct {
 	StockOutRepository repository.StockOutRepository
 	ProductRepository  repository.ProductRepository
 	DB                 *gorm.DB
-	RedisClient        *redis.Client
 	Validate           *validator.Validate
 }
 
@@ -30,66 +25,24 @@ func NewStockOutService(
 	stockOutRepository repository.StockOutRepository,
 	productRepository repository.ProductRepository,
 	db *gorm.DB,
-	redisClient *redis.Client,
 	validate *validator.Validate,
 ) StockOutService {
 	return &StockOutServiceImpl{
 		StockOutRepository: stockOutRepository,
 		ProductRepository:  productRepository,
 		DB:                 db,
-		RedisClient:        redisClient,
 		Validate:           validate,
 	}
 }
 
 func (service *StockOutServiceImpl) FindAll(auth *auth.AccessDetails, filters *map[string]string, c *gin.Context) []web.StockOutResponse {
-	ctx := context.Background()
-	key := "stock_outs:all"
-
-	// Check cache in Redis
-	data, err := service.RedisClient.Get(ctx, key).Result()
-	if err == nil {
-		var cachedStockOuts []web.StockOutResponse
-		if err := json.Unmarshal([]byte(data), &cachedStockOuts); err == nil {
-			return cachedStockOuts
-		}
-	}
-
-	// If cache not found
 	stockOuts := service.StockOutRepository.FindAll(service.DB, filters)
-	stockOutResponses := stockOuts.ToStockOutResponses()
-
-	// Save to Redis
-	jsonData, err := json.Marshal(stockOutResponses)
-	if err == nil {
-		_ = service.RedisClient.Set(ctx, key, jsonData, 30*time.Minute).Err()
-	}
-
-	return stockOutResponses
+	return stockOuts.ToStockOutResponses()
 }
 
 func (service *StockOutServiceImpl) FindByID(auth *auth.AccessDetails, id *uint, c *gin.Context) web.StockOutResponse {
-	ctx := context.Background()
-	key := fmt.Sprintf("stock_out:%d", *id)
-
-	// Check cache in Redis
-	data, err := service.RedisClient.Get(ctx, key).Result()
-	if err == nil {
-		var cachedStockOut web.StockOutResponse
-		if err := json.Unmarshal([]byte(data), &cachedStockOut); err == nil {
-			return cachedStockOut
-		}
-	}
-
-	// If cache not found, get from database
 	stockOut := service.StockOutRepository.FindByID(service.DB, id)
-	stockOutResponse := stockOut.ToStockOutResponse()
-
-	// Save to Redis
-	jsonData, _ := json.Marshal(stockOutResponse)
-	_ = service.RedisClient.Set(ctx, key, jsonData, 30*time.Minute).Err()
-
-	return stockOutResponse
+	return stockOut.ToStockOutResponse()
 }
 
 func (service *StockOutServiceImpl) Create(auth *auth.AccessDetails, request *web.StockOutCreateRequest, c *gin.Context) web.StockOutResponse {
@@ -134,12 +87,6 @@ func (service *StockOutServiceImpl) Create(auth *auth.AccessDetails, request *we
 	service.ProductRepository.Update(tx, &product)
 
 	tx.Commit()
-
-	// Invalidate cache
-	ctx := context.Background()
-	_ = service.RedisClient.Del(ctx, "stock_outs:all").Err()
-	_ = service.RedisClient.Del(ctx, "products:all").Err()
-	_ = service.RedisClient.Del(ctx, fmt.Sprintf("product:%d", request.ProductID)).Err()
 
 	return createdStockOut.ToStockOutResponse()
 }
@@ -190,13 +137,6 @@ func (service *StockOutServiceImpl) Update(auth *auth.AccessDetails, id uint, re
 
 	tx.Commit()
 
-	// Invalidate cache
-	ctx := context.Background()
-	_ = service.RedisClient.Del(ctx, "stock_outs:all").Err()
-	_ = service.RedisClient.Del(ctx, fmt.Sprintf("stock_out:%d", id)).Err()
-	_ = service.RedisClient.Del(ctx, "products:all").Err()
-	_ = service.RedisClient.Del(ctx, fmt.Sprintf("product:%d", request.ProductID)).Err()
-
 	return updatedStockOut.ToStockOutResponse()
 }
 
@@ -215,11 +155,4 @@ func (service *StockOutServiceImpl) Delete(auth *auth.AccessDetails, id uint, c 
 	service.StockOutRepository.Delete(tx, id, auth.ID)
 
 	tx.Commit()
-
-	// Invalidate cache
-	ctx := context.Background()
-	_ = service.RedisClient.Del(ctx, "stock_outs:all").Err()
-	_ = service.RedisClient.Del(ctx, fmt.Sprintf("stock_out:%d", id)).Err()
-	_ = service.RedisClient.Del(ctx, "products:all").Err()
-	_ = service.RedisClient.Del(ctx, fmt.Sprintf("product:%d", existingStockOut.ProductID)).Err()
 }
