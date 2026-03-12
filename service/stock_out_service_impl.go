@@ -84,6 +84,12 @@ func (service *StockOutServiceImpl) Create(auth *auth.AccessDetails, request *we
 
 	// Update product stock (subtract)
 	product.Stock -= request.Quantity
+
+	if product.Stock < 0 {
+		err := &exception.ErrorSendToResponse{Err: "Insufficient stock after update"}
+		helper.PanicIfError(err)
+	}
+
 	service.ProductRepository.Update(tx, &product)
 
 	tx.Commit()
