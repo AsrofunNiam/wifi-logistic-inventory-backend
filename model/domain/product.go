@@ -13,10 +13,10 @@ type Product struct {
 	DeletedByID *uint `gorm:"default:null"`
 
 	// Required Fields
-	Code        string  `gorm:"type:varchar(50);uniqueIndex;not null"`
+	Code        string  `gorm:"type:varchar(50);not null"`
 	Name        string  `gorm:"type:varchar(255);not null"`
 	CategoryID  uint    `gorm:"default:null"`
-	SupplierID  uint    `gorm:"default:null"`
+	SupplierID  string  `gorm:"default:null"`
 	Description string  `gorm:"type:text"`
 	Stock       int     `gorm:"default:0"`
 	MinStock    int     `gorm:"default:0"`
