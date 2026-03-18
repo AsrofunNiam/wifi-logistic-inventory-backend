@@ -20,7 +20,7 @@ type StockInResponse struct {
 }
 
 type StockInCreateRequest struct {
-	Code       string `json:"code" validate:"required"`
+	Code       string `json:"code"`
 	Date       string `json:"date" validate:"required"`
 	ProductID  uint   `json:"product_id" validate:"required"`
 	SupplierID uint   `json:"supplier_id" validate:"required"`

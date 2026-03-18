@@ -17,6 +17,10 @@ func ErrorHandler(c *gin.Context, err interface{}) {
 		return
 	}
 
+	if badRequestError(c, err) {
+		return
+	}
+
 	if sendToResponseError(c, err) {
 		return
 	}
@@ -58,6 +62,22 @@ func validationError(c *gin.Context, err interface{}) bool {
 	} else {
 		return false
 	}
+}
+
+func badRequestError(c *gin.Context, err interface{}) bool {
+	exception, ok := err.(*BadRequestError)
+	if ok {
+		webResponse := web.WebResponse{
+			Success: false,
+			Message: exception.Error(),
+			Data:    nil,
+		}
+
+		c.JSON(http.StatusBadRequest, webResponse)
+		return true
+	}
+
+	return false
 }
 
 func recordNotFoundError(c *gin.Context, err interface{}) bool {

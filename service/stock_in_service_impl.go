@@ -59,8 +59,14 @@ func (service *StockInServiceImpl) Create(auth *auth.AccessDetails, request *web
 		panic(exception.NewBadRequestError("Invalid date format"))
 	}
 
+	generatedCode, err := helper.GenerateTransactionCode(tx, &domain.StockIn{}, "SI", date)
+	if err != nil {
+		tx.Rollback()
+		panic(exception.NewBadRequestError("Failed to generate stock in code"))
+	}
+
 	stockIn := domain.StockIn{
-		Code:        request.Code,
+		Code:        generatedCode,
 		Date:        date,
 		ProductID:   request.ProductID,
 		SupplierID:  request.SupplierID,
@@ -107,7 +113,7 @@ func (service *StockInServiceImpl) Update(auth *auth.AccessDetails, id uint, req
 
 	stockIn := domain.StockIn{
 		Model:       gorm.Model{ID: id},
-		Code:        request.Code,
+		Code:        existingStockIn.Code,
 		Date:        date,
 		ProductID:   request.ProductID,
 		SupplierID:  request.SupplierID,
