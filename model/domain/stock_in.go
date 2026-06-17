@@ -25,32 +25,46 @@ type StockIn struct {
 	// Relations
 	Product  Product  `gorm:"foreignKey:ProductID"`
 	Supplier Supplier `gorm:"foreignKey:SupplierID"`
-	User     User     `gorm:"foreignKey:CreatedByID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	User     User     `gorm:"foreignKey:ID;references:CreatedByID"`
 }
 
 func (stockIn *StockIn) ToStockInResponse() web.StockInResponse {
+	productName := ""
 	productCode := ""
 	productUnit := ""
-	if stockIn.Product.Code != "" {
+
+	supplierName := ""
+	// createdBy := ""
+
+	if stockIn.ProductID == stockIn.Product.ID {
+		productName = stockIn.Product.Name
 		productCode = stockIn.Product.Code
-	}
-	if stockIn.Product.Unit != "" {
 		productUnit = stockIn.Product.Unit
 	}
+
+	if stockIn.SupplierID == stockIn.Supplier.ID {
+		supplierName = stockIn.Supplier.Name
+	}
+
+	createdBy := ""
+	if stockIn.CreatedByID == stockIn.User.ID {
+		createdBy = stockIn.User.FullName
+	}
+
 	return web.StockInResponse{
 		ID:           stockIn.ID,
 		Code:         stockIn.Code,
 		Date:         stockIn.Date.Format("2006-01-02"),
 		ProductID:    stockIn.ProductID,
-		ProductName:  stockIn.Product.Name,
+		ProductName:  productName,
 		ProductCode:  productCode,
 		ProductUnit:  productUnit,
 		SupplierID:   stockIn.SupplierID,
-		SupplierName: stockIn.Supplier.Name,
+		SupplierName: supplierName,
 		Quantity:     stockIn.Quantity,
 		Notes:        stockIn.Notes,
 		CreatedByID:  stockIn.CreatedByID,
-		CreatedBy:    stockIn.User.FullName,
+		CreatedBy:    createdBy,
 		CreatedAt:    stockIn.CreatedAt,
 	}
 }

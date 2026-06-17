@@ -15,12 +15,12 @@ func NewStockInRepository() StockInRepository {
 
 func (repository *StockInRepositoryImpl) FindAll(db *gorm.DB, filters *map[string]string) domain.StockIns {
 	stockIns := domain.StockIns{}
-	tx := db.Model(&domain.StockIn{})
+	tx := db.Preload("Product").Preload("Supplier").Preload("User")
 
 	err := helper.ApplyFilter(tx, filters)
 	helper.PanicIfError(err)
 
-	err = tx.Preload("Product").Preload("Supplier").Preload("User").Find(&stockIns).Error
+	err = tx.Find(&stockIns).Error
 	helper.PanicIfError(err)
 
 	return stockIns

@@ -24,7 +24,7 @@ type StockOut struct {
 
 	// Relations
 	Product Product `gorm:"foreignKey:ProductID"`
-	User    User    `gorm:"foreignKey:CreatedByID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	User    User    `gorm:"foreignKey:ID;references:CreatedByID"`
 }
 
 func (stockOut *StockOut) ToStockOutResponse() web.StockOutResponse {

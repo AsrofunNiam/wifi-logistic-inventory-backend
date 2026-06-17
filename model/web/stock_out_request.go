@@ -19,7 +19,7 @@ type StockOutResponse struct {
 }
 
 type StockOutCreateRequest struct {
-	Code        string `json:"code" validate:"required"`
+	Code        string `json:"code"`
 	Date        string `json:"date" validate:"required"`
 	ProductID   uint   `json:"product_id" validate:"required"`
 	Destination string `json:"destination" validate:"required"`

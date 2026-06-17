@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/AsrofunNiam/wifi-logistic-inventory-backend/auth"
@@ -56,7 +57,7 @@ func (service *StockOutServiceImpl) Create(auth *auth.AccessDetails, request *we
 	product := service.ProductRepository.FindByID(tx, &request.ProductID)
 	if product.Stock < request.Quantity {
 		tx.Rollback()
-		panic(exception.NewBadRequestError("Insufficient stock"))
+		panic(exception.NewBadRequestError(fmt.Sprintf("Insufficient stock for product %s. Available stock: %d, requested: %d", product.Name, product.Stock, request.Quantity)))
 	}
 
 	// Parse date
@@ -66,8 +67,14 @@ func (service *StockOutServiceImpl) Create(auth *auth.AccessDetails, request *we
 		panic(exception.NewBadRequestError("Invalid date format"))
 	}
 
+	generatedCode, err := helper.GenerateTransactionCode(tx, &domain.StockOut{}, "SO", date)
+	if err != nil {
+		tx.Rollback()
+		panic(exception.NewBadRequestError("Failed to generate stock out code"))
+	}
+
 	stockOut := domain.StockOut{
-		Code:        request.Code,
+		Code:        generatedCode,
 		Date:        date,
 		ProductID:   request.ProductID,
 		Destination: request.Destination,
@@ -84,6 +91,12 @@ func (service *StockOutServiceImpl) Create(auth *auth.AccessDetails, request *we
 
 	// Update product stock (subtract)
 	product.Stock -= request.Quantity
+
+	if product.Stock < 0 {
+		err := &exception.ErrorSendToResponse{Err: "Insufficient stock after update"}
+		helper.PanicIfError(err)
+	}
+
 	service.ProductRepository.Update(tx, &product)
 
 	tx.Commit()
@@ -108,7 +121,7 @@ func (service *StockOutServiceImpl) Update(auth *auth.AccessDetails, id uint, re
 	product := service.ProductRepository.FindByID(tx, &request.ProductID)
 	if product.Stock < stockDiff {
 		tx.Rollback()
-		panic(exception.NewBadRequestError("Insufficient stock"))
+		panic(exception.NewBadRequestError(fmt.Sprintf("Insufficient stock for product %s. Available stock: %d, additional requested: %d", product.Name, product.Stock, stockDiff)))
 	}
 
 	// Parse date
@@ -120,7 +133,7 @@ func (service *StockOutServiceImpl) Update(auth *auth.AccessDetails, id uint, re
 
 	stockOut := domain.StockOut{
 		Model:       gorm.Model{ID: id},
-		Code:        request.Code,
+		Code:        existingStockOut.Code,
 		Date:        date,
 		ProductID:   request.ProductID,
 		Destination: request.Destination,

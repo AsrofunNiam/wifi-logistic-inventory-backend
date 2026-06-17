@@ -20,20 +20,24 @@ type Supplier struct {
 	Email   string `gorm:"type:varchar(100)"`
 	Address string `gorm:"type:text"`
 	Status  string `gorm:"type:varchar(20);default:'active'"` // active, inactive
+
+	// Relations
+	Products []Product `gorm:"foreignKey:SupplierID"`
 }
 
 func (supplier *Supplier) ToSupplierResponse() web.SupplierResponse {
 	return web.SupplierResponse{
-		ID:        supplier.ID,
-		Code:      supplier.Code,
-		Name:      supplier.Name,
-		Contact:   supplier.Contact,
-		Phone:     supplier.Phone,
-		Email:     supplier.Email,
-		Address:   supplier.Address,
-		Status:    supplier.Status,
-		CreatedAt: supplier.CreatedAt,
-		UpdatedAt: supplier.UpdatedAt,
+		ID:           supplier.ID,
+		Code:         supplier.Code,
+		Name:         supplier.Name,
+		Contact:      supplier.Contact,
+		Phone:        supplier.Phone,
+		Email:        supplier.Email,
+		Address:      supplier.Address,
+		ProductCount: int64(len(supplier.Products)),
+		Status:       supplier.Status,
+		CreatedAt:    supplier.CreatedAt,
+		UpdatedAt:    supplier.UpdatedAt,
 	}
 }
 

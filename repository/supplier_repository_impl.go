@@ -20,7 +20,7 @@ func (repository *SupplierRepositoryImpl) FindAll(db *gorm.DB, filters *map[stri
 	err := helper.ApplyFilter(tx, filters)
 	helper.PanicIfError(err)
 
-	err = tx.Find(&suppliers).Error
+	err = tx.Preload("Products").Find(&suppliers).Error
 	helper.PanicIfError(err)
 
 	return suppliers
@@ -29,7 +29,7 @@ func (repository *SupplierRepositoryImpl) FindAll(db *gorm.DB, filters *map[stri
 func (repository *SupplierRepositoryImpl) FindByID(db *gorm.DB, id *uint) domain.Supplier {
 	var supplier domain.Supplier
 
-	err := db.First(&supplier, id).Error
+	err := db.Preload("Products").First(&supplier, id).Error
 	helper.PanicIfError(err)
 	return supplier
 }
